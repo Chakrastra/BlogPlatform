@@ -83,54 +83,6 @@ Admin panel → **http://127.0.0.1:8000/admin/**
 
 ---
 
-## 🌐 Deployment Guides
-
-### 🥇 Option 1: PythonAnywhere (100% Free)
-This site is live at: [https://chakrastra.pythonanywhere.com/](https://chakrastra.pythonanywhere.com/)
-
-**Quick Deployment Steps on PythonAnywhere:**
-1. Create a beginner account and add a new web app using **Manual configuration** with **Python 3.11**.
-2. Open a Bash console, clone this repository, set up a virtual environment and install packages:
-   ```bash
-   git clone https://github.com/Chakrastra/BlogPlatform.git
-   mkvirtualenv myenv --python=python3.11
-   cd BlogPlatform
-   pip install -r requirements.txt
-   ```
-3. Copy environment settings, run migrations and seed data:
-   ```bash
-   cp .env.example .env
-   python manage.py migrate
-   python seed_data.py
-   python manage.py collectstatic --noinput
-   ```
-4. Set up the Web tab:
-   - Source code & Working directory: `/home/YOUR_USERNAME/BlogPlatform`
-   - Virtualenv: `/home/YOUR_USERNAME/.virtualenvs/myenv`
-   - Static files mapping:
-     - URL `/static/` to Directory `/home/YOUR_USERNAME/BlogPlatform/staticfiles`
-     - URL `/media/` to Directory `/home/YOUR_USERNAME/BlogPlatform/media`
-5. Update your WSGI configuration file linked on the Web tab to mount Django:
-   ```python
-   import os
-   import sys
-   path = '/home/YOUR_USERNAME/BlogPlatform'
-   if path not in sys.path:
-       sys.path.append(path)
-   os.environ['DJANGO_SETTINGS_MODULE'] = 'blogplatform.settings'
-   from django.core.wsgi import get_wsgi_application
-   application = get_wsgi_application()
-   ```
-
-### 🥈 Option 2: Railway
-This project is configured with a `railway.toml` and `Procfile` for one-click deploys:
-1. Connect this GitHub repo to [railway.app](https://railway.app)
-2. Provision a **PostgreSQL** database service
-3. Set the required variables in your project config:
-   - `SECRET_KEY`, `DEBUG=False`, `ALLOWED_HOSTS`, and `SECURE_SSL_REDIRECT=True`
-
----
-
 ## 🗂️ Project Structure
 
 ```
