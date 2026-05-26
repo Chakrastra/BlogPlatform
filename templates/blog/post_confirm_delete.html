@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Confirm Delete — BlogPlatform{% endblock %}
+
+{% block content %}
+<div class="container section" style="max-width:520px;">
+  <div class="form-card" style="text-align:center;">
+    <div style="font-size:4rem; margin-bottom:1rem;">🗑️</div>
+    <h1 class="form-title" style="font-size:1.5rem; margin-bottom:0.75rem;">Delete this post?</h1>
+    <p style="color:var(--text-secondary); margin-bottom:0.5rem;">You're about to permanently delete:</p>
+    <p style="color:var(--text-primary); font-weight:600; font-size:1.05rem; margin-bottom:1.5rem; padding:0.75rem 1rem; background:var(--bg-card-hover); border-radius:var(--radius-sm);">
+      "{{ post.title }}"
+    </p>
+    <p style="color:var(--danger); font-size:0.875rem; margin-bottom:2rem;">⚠️ This action cannot be undone. All comments and likes will be lost.</p>
+    <div style="display:flex; gap:0.75rem; justify-content:center;">
+      <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-lg">Yes, Delete It</button>
+      </form>
+      <a href="{% url 'post_detail' post.slug %}" class="btn btn-outline btn-lg">Cancel</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

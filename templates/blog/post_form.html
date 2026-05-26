@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}{% if action == 'Create' %}Write a New Post{% else %}Edit Post{% endif %} — BlogPlatform{% endblock %}
+
+{% block content %}
+<div class="container section" style="max-width:800px;">
+  <div style="margin-bottom:1.5rem;">
+    <a href="{% if post %}{% url 'post_detail' post.slug %}{% else %}{% url 'dashboard' %}{% endif %}"
+       style="color:var(--text-muted); font-size:0.875rem; display:inline-flex; align-items:center; gap:0.3rem;">
+      ← {% if post %}Back to Post{% else %}Back to Dashboard{% endif %}
+    </a>
+  </div>
+
+  <div class="form-card">
+    <h1 class="form-title">
+      {% if action == 'Create' %}✏️ Write a New Post{% else %}🖊 Edit Post{% endif %}
+    </h1>
+
+    <form method="POST" id="post-form">
+      {% csrf_token %}
+
+      <!-- Title -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.title.id_for_label }}">Post Title *</label>
+        {{ form.title }}
+        {% if form.title.errors %}
+        <ul class="errorlist">{% for e in form.title.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+
+      <!-- Category -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.category.id_for_label }}">Category</label>
+        {{ form.category }}
+      </div>
+
+      <!-- Featured Image URL -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.featured_image_url.id_for_label }}">Featured Image URL <span style="color:var(--text-muted); font-weight:400;">(optional)</span></label>
+        {{ form.featured_image_url }}
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.35rem;">
+          Paste any public image URL from the web. Leave blank to use a placeholder icon.
+        </p>
+        {% if form.featured_image_url.errors %}
+        <ul class="errorlist">{% for e in form.featured_image_url.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+        <!-- Image Preview -->
+        <div id="img-preview-wrap" style="display:none; margin-top:0.75rem;">
+          <img id="img-preview" src="" alt="Preview" style="max-height:180px; border-radius:var(--radius-sm); border:1px solid var(--glass-border);">
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.body.id_for_label }}">Content *</label>
+        {{ form.body }}
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.35rem;">
+          <span id="word-count">0</span> words · <span id="read-time">0</span> min read
+        </p>
+        {% if form.body.errors %}
+        <ul class="errorlist">{% for e in form.body.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+
+      <!-- Published -->
+      <div class="form-group">
+        <div class="form-check">
+          {{ form.published }}
+          <label class="form-check-label" for="{{ form.published.id_for_label }}">
+            Publish immediately (uncheck to save as draft)
+          </label>
+        </div>
+      </div>
+
+      <!-- Non-field errors -->
+      {% if form.non_field_errors %}
+      <div style="color:var(--danger); font-size:0.85rem; margin-bottom:1rem;">
+        {% for e in form.non_field_errors %}{{ e }}{% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Submit Buttons -->
+      <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
+        <button type="submit" class="btn btn-primary btn-lg">
+          {% if action == 'Create' %}🚀 Publish Post{% else %}💾 Save Changes{% endif %}
+        </button>
+        <a href="{% if post %}{% url 'post_detail' post.slug %}{% else %}{% url 'dashboard' %}{% endif %}" class="btn btn-outline btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Word count & reading time
+  const bodyField = document.querySelector('textarea[name="body"]');
+  const wordCountEl = document.getElementById('word-count');
+  const readTimeEl = document.getElementById('read-time');
+
+  function updateWordCount() {
+    const words = bodyField.value.trim().split(/\s+/).filter(w => w.length > 0);
+    const count = words.length;
+    wordCountEl.textContent = count;
+    readTimeEl.textContent = Math.max(1, Math.round(count / 200));
+  }
+
+  if (bodyField) {
+    bodyField.addEventListener('input', updateWordCount);
+    updateWordCount();
+  }
+
+  // Image preview
+  const imgUrlField = document.querySelector('input[name="featured_image_url"]');
+  const imgPreview = document.getElementById('img-preview');
+  const imgPreviewWrap = document.getElementById('img-preview-wrap');
+
+  function updatePreview() {
+    const url = imgUrlField.value.trim();
+    if (url) {
+      imgPreview.src = url;
+      imgPreviewWrap.style.display = 'block';
+      imgPreview.onerror = () => { imgPreviewWrap.style.display = 'none'; };
+    } else {
+      imgPreviewWrap.style.display = 'none';
+    }
+  }
+
+  if (imgUrlField) {
+    imgUrlField.addEventListener('input', updatePreview);
+    updatePreview();
+  }
+</script>
+{% endblock %}

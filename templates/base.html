@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}BlogPlatform — Ideas Worth Sharing{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}A modern platform to share ideas, stories, and insights.{% endblock %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <!-- Background Orbs -->
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <!-- Flash Messages -->
+  {% if messages %}
+  <div class="messages-container" id="messages-container">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" onclick="this.remove()">
+      {% if message.tags == 'success' %}✅{% elif message.tags == 'error' or message.tags == 'danger' %}❌{% elif message.tags == 'warning' %}⚠️{% else %}💬{% endif %}
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="{% url 'home' %}" class="navbar-brand">✍️ BlogPlatform</a>
+    <ul class="navbar-links">
+      <li><a href="{% url 'home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>
+        🏠 <span class="nav-text">Home</span>
+      </a></li>
+      {% if user.is_authenticated %}
+      <li><a href="{% url 'post_create' %}" {% if request.resolver_match.url_name == 'post_create' %}class="active"{% endif %}>
+        ✏️ <span class="nav-text">Write</span>
+      </a></li>
+      <li><a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>
+        📊 <span class="nav-text">Dashboard</span>
+      </a></li>
+      <li><div class="nav-divider"></div></li>
+      <li>
+        <a href="{% url 'logout' %}" style="color: var(--danger);">
+          👋 <span class="nav-text">Logout ({{ user.username }})</span>
+        </a>
+      </li>
+      {% else %}
+      <li><div class="nav-divider"></div></li>
+      <li><a href="{% url 'login' %}">Login</a></li>
+      <li><a href="{% url 'register' %}" class="btn btn-primary btn-sm">Sign Up</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>Made with ❤️ using <strong>Django</strong> &mdash; BlogPlatform &copy; 2025</p>
+      <p style="margin-top:0.3rem;">
+        <a href="{% url 'home' %}">Home</a> &middot;
+        {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}">Dashboard</a> &middot;
+        <a href="{% url 'post_create' %}">Write a Post</a>
+        {% else %}
+        <a href="{% url 'register' %}">Join Us</a> &middot;
+        <a href="{% url 'login' %}">Login</a>
+        {% endif %}
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Auto-dismiss flash messages after 4s
+    setTimeout(() => {
+      const container = document.getElementById('messages-container');
+      if (container) {
+        container.style.transition = 'opacity 0.5s ease';
+        container.style.opacity = '0';
+        setTimeout(() => container.remove(), 500);
+      }
+    }, 4000);
+  </script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

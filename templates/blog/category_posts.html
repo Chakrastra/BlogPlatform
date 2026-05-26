@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}{{ category.name }} — BlogPlatform{% endblock %}
+
+{% block content %}
+<div class="container section">
+  <!-- Header -->
+  <div style="margin-bottom:2rem; text-align:center; padding:3rem 1rem; position:relative;">
+    <div style="position:absolute; inset:0; background:radial-gradient(ellipse 60% 80% at 50% 50%, {{ category.color }}15, transparent); pointer-events:none; border-radius:var(--radius);"></div>
+    <span class="badge" style="background:{{ category.color }}20; border:1px solid {{ category.color }}40; color:{{ category.color }}; font-size:0.8rem; margin-bottom:1rem;">Category</span>
+    <h1 style="font-family:'Playfair Display',serif; font-size:2.5rem; font-weight:700; color:var(--text-primary); margin-bottom:0.5rem;">{{ category.name }}</h1>
+    {% if category.description %}
+    <p style="color:var(--text-secondary); max-width:480px; margin:0 auto;">{{ category.description }}</p>
+    {% endif %}
+    <p style="color:var(--text-muted); font-size:0.875rem; margin-top:0.75rem;">{{ page_obj.paginator.count }} post{{ page_obj.paginator.count|pluralize }}</p>
+  </div>
+
+  <div class="content-two-col">
+    <div>
+      {% if page_obj.object_list %}
+      <div class="posts-grid">
+        {% for post in page_obj %}
+        <article class="card">
+          {% if post.featured_image_url %}
+          <img src="{{ post.featured_image_url }}" alt="{{ post.title }}" class="card-img" loading="lazy" onerror="this.style.display='none'">
+          {% else %}
+          <div class="card-img-placeholder" style="background:linear-gradient(135deg, {{ category.color }}20, #1a1b2e);">
+            <span style="font-size:2.5rem;">{{ category.name|first }}</span>
+          </div>
+          {% endif %}
+          <div class="card-body">
+            <h3 class="card-title"><a href="{% url 'post_detail' post.slug %}">{{ post.title }}</a></h3>
+            <p class="card-excerpt">{{ post.body }}</p>
+            <div class="card-meta">
+              <span class="author-avatar">{{ post.author.username|first|upper }}</span>
+              <strong style="color:var(--text-secondary);">{{ post.author.username }}</strong>
+              <span>·</span>
+              <span>{{ post.created_at|date:"M d, Y" }}</span>
+              <span>·</span>
+              <span>❤️ {{ post.like_count }}</span>
+              <span>·</span>
+              <span>💬 {{ post.comment_count }}</span>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+
+      {% if page_obj.has_other_pages %}
+      <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="page-link">← Prev</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+          <span class="page-link active">{{ num }}</span>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next →</a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>No posts in this category yet</h3>
+        <p><a href="{% url 'home' %}">Browse all posts</a> or <a href="{% url 'post_create' %}">write one</a>.</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <aside>
+      <div class="sidebar-card">
+        <p class="sidebar-title">📂 All Categories</p>
+        <ul class="category-list">
+          {% for cat in categories %}
+          <li>
+            <a href="{% url 'category_posts' cat.slug %}" style="color:{{ cat.color }}; {% if cat == category %}font-weight:700;{% endif %}">
+              {% if cat == category %}▶ {% endif %}{{ cat.name }}
+            </a>
+            <span class="cat-count">{{ cat.post_count }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div style="text-align:center;">
+        <a href="{% url 'home' %}" class="btn btn-outline btn-sm">← All Posts</a>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

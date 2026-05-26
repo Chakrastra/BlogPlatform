@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% block title %}{{ post.title }} — BlogPlatform{% endblock %}
+{% block meta_description %}{{ post.body|truncatewords:25 }}{% endblock %}
+
+{% block content %}
+<div class="container section">
+  <div class="content-two-col">
+
+    <!-- Main Content -->
+    <article>
+      <!-- Back link -->
+      <a href="{% url 'home' %}" style="color:var(--text-muted); font-size:0.875rem; display:inline-flex; align-items:center; gap:0.3rem; margin-bottom:1.5rem;">
+        ← Back to Posts
+      </a>
+
+      <!-- Category -->
+      {% if post.category %}
+      <a href="{% url 'category_posts' post.category.slug %}" class="badge badge-category" style="margin-bottom:1rem; border-color:{{ post.category.color }}50; color:{{ post.category.color }};">
+        {{ post.category.name }}
+      </a>
+      {% endif %}
+
+      <!-- Title -->
+      <h1 class="post-title">{{ post.title }}</h1>
+
+      <!-- Meta Row -->
+      <div class="post-meta-row">
+        <span class="author">
+          <span class="author-avatar">{{ post.author.username|first|upper }}</span>
+          {{ post.author.username }}
+        </span>
+        <span>📅 {{ post.created_at|date:"F d, Y" }}</span>
+        <span>⏱ {{ post.reading_time }} min read</span>
+        <span>❤️ <span id="like-count">{{ post.like_count }}</span> likes</span>
+        <span>💬 {{ post.comment_count }} comments</span>
+        {% if post.updated_at != post.created_at %}
+        <span style="color:var(--text-muted);">Updated {{ post.updated_at|date:"M d, Y" }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Featured Image -->
+      {% if post.featured_image_url %}
+      <div class="post-hero">
+        <img src="{{ post.featured_image_url }}" alt="{{ post.title }}" onerror="this.parentElement.style.display='none'">
+      </div>
+      {% endif %}
+
+      <!-- Body -->
+      <div class="post-body">
+        {{ post.body|linebreaks }}
+      </div>
+
+      <!-- Action Bar -->
+      <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--glass-border);">
+        {% if user.is_authenticated %}
+        <form id="like-form" method="POST" action="{% url 'toggle_like' post.slug %}" style="margin:0;">
+          {% csrf_token %}
+          <button type="submit" id="like-btn" class="like-btn {% if user_liked %}liked{% endif %}">
+            <span class="heart">{% if user_liked %}❤️{% else %}🤍{% endif %}</span>
+            <span id="like-label">{% if user_liked %}Liked{% else %}Like{% endif %}</span>
+          </button>
+        </form>
+        {% else %}
+        <a href="{% url 'login' %}" class="like-btn">🤍 Like this post</a>
+        {% endif %}
+
+        {% if user == post.author %}
+        <a href="{% url 'post_update' post.slug %}" class="btn btn-outline btn-sm">✏️ Edit Post</a>
+        <a href="{% url 'post_delete' post.slug %}" class="btn btn-danger btn-sm">🗑 Delete</a>
+        {% endif %}
+      </div>
+
+      <hr class="divider">
+
+      <!-- Comments Section -->
+      <section class="comments-section">
+        <h3>💬 Comments <span style="color:var(--text-muted); font-size:0.95rem;">({{ post.comment_count }})</span></h3>
+
+        {% if user.is_authenticated %}
+        <div style="margin-bottom:2rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+            <span class="author-avatar">{{ user.username|first|upper }}</span>
+            <span style="font-size:0.875rem; color:var(--text-secondary);">Commenting as <strong>{{ user.username }}</strong></span>
+          </div>
+          <form method="POST" action="{% url 'post_detail' post.slug %}">
+            {% csrf_token %}
+            {{ comment_form.body }}
+            {% if comment_form.body.errors %}
+            <ul class="errorlist">{% for e in comment_form.body.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+            <button type="submit" class="btn btn-primary btn-sm" style="margin-top:0.75rem;">Post Comment</button>
+          </form>
+        </div>
+        {% else %}
+        <div style="padding:1rem; background:var(--bg-card); border:1px solid var(--glass-border); border-radius:var(--radius-sm); margin-bottom:1.5rem; font-size:0.875rem; color:var(--text-muted); text-align:center;">
+          <a href="{% url 'login' %}">Sign in</a> to leave a comment.
+        </div>
+        {% endif %}
+
+        {% if comments %}
+        <div>
+          {% for comment in comments %}
+          <div class="comment-card">
+            <div class="comment-header">
+              <div class="comment-author">
+                <span class="author-avatar" style="width:28px; height:28px; font-size:0.7rem;">{{ comment.author.username|first|upper }}</span>
+                {{ comment.author.username }}
+                <span class="comment-date">· {{ comment.created_at|date:"M d, Y" }}</span>
+              </div>
+              {% if user == comment.author or user == post.author %}
+              <form method="POST" action="{% url 'comment_delete' comment.pk %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm" style="padding:0.2rem 0.6rem; font-size:0.75rem;"
+                  onclick="return confirm('Delete this comment?')">✕</button>
+              </form>
+              {% endif %}
+            </div>
+            <p class="comment-body">{{ comment.body }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state" style="padding:2rem;">
+          <div class="empty-icon" style="font-size:2.5rem;">💬</div>
+          <p>No comments yet. Be the first to share your thoughts!</p>
+        </div>
+        {% endif %}
+      </section>
+    </article>
+
+    <!-- Sidebar -->
+    <aside>
+      <!-- Author Card -->
+      <div class="sidebar-card">
+        <p class="sidebar-title">👤 Written by</p>
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+          <span class="author-avatar" style="width:44px; height:44px; font-size:1rem;">{{ post.author.username|first|upper }}</span>
+          <div>
+            <div style="font-weight:600; color:var(--text-primary);">{{ post.author.username }}</div>
+            <div style="font-size:0.78rem; color:var(--text-muted);">Member since {{ post.author.date_joined|date:"Y" }}</div>
+          </div>
+        </div>
+        <div style="font-size:0.82rem; color:var(--text-secondary);">{{ post.author.posts.count }} post{{ post.author.posts.count|pluralize }} published</div>
+      </div>
+
+      <!-- Related Posts -->
+      {% if related_posts %}
+      <div class="sidebar-card">
+        <p class="sidebar-title">📚 Related Posts</p>
+        {% for rp in related_posts %}
+        <div style="padding:0.6rem 0; border-bottom:1px solid var(--glass-border);">
+          <a href="{% url 'post_detail' rp.slug %}" style="font-size:0.875rem; color:var(--text-secondary); line-height:1.4; display:block;">{{ rp.title }}</a>
+          <span style="font-size:0.75rem; color:var(--text-muted);">{{ rp.created_at|date:"M d" }} · ❤️ {{ rp.like_count }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Post Stats -->
+      <div class="sidebar-card">
+        <p class="sidebar-title">📊 Post Info</p>
+        <div style="display:flex; flex-direction:column; gap:0.6rem; font-size:0.85rem;">
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Category</span>
+            <span style="color:var(--text-primary);">{% if post.category %}{{ post.category.name }}{% else %}Uncategorized{% endif %}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Reading Time</span>
+            <span style="color:var(--text-primary);">{{ post.reading_time }} min</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Likes</span>
+            <span style="color:var(--pink);">❤️ {{ post.like_count }}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Comments</span>
+            <span style="color:var(--teal);">💬 {{ post.comment_count }}</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // AJAX like toggle
+  const likeForm = document.getElementById('like-form');
+  if (likeForm) {
+    likeForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('like-btn');
+      const countEl = document.getElementById('like-count');
+      const heartEl = btn.querySelector('.heart');
+      const labelEl = document.getElementById('like-label');
+
+      const formData = new FormData(likeForm);
+      const response = await fetch(likeForm.action, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.liked) {
+        btn.classList.add('liked');
+        heartEl.textContent = '❤️';
+        labelEl.textContent = 'Liked';
+      } else {
+        btn.classList.remove('liked');
+        heartEl.textContent = '🤍';
+        labelEl.textContent = 'Like';
+      }
+      countEl.textContent = data.count;
+    });
+  }
+</script>
+{% endblock %}
