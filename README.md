@@ -2,6 +2,8 @@
 
 A full-featured **Blog Platform** built with Python & Django — featuring user authentication, rich blog post management, categories, comments, likes, search, and a stunning dark-mode UI.
 
+🚀 **Live Demo:** [https://chakrastra.pythonanywhere.com/](https://chakrastra.pythonanywhere.com/)
+
 ![Python](https://img.shields.io/badge/Python-3.11-blue?style=flat-square&logo=python)
 ![Django](https://img.shields.io/badge/Django-5.0-green?style=flat-square&logo=django)
 ![License](https://img.shields.io/badge/License-MIT-purple?style=flat-square)
@@ -81,24 +83,51 @@ Admin panel → **http://127.0.0.1:8000/admin/**
 
 ---
 
-## 🌐 Deployment (Railway)
+## 🌐 Deployment Guides
 
-This project is **production-ready** out of the box:
+### 🥇 Option 1: PythonAnywhere (100% Free)
+This site is live at: [https://chakrastra.pythonanywhere.com/](https://chakrastra.pythonanywhere.com/)
 
-1. Push to GitHub ✅
-2. Go to [railway.app](https://railway.app) → **New Project → Deploy from GitHub**
-3. Select this repo
-4. Add a **PostgreSQL** database addon
-5. Set environment variables:
+**Quick Deployment Steps on PythonAnywhere:**
+1. Create a beginner account and add a new web app using **Manual configuration** with **Python 3.11**.
+2. Open a Bash console, clone this repository, set up a virtual environment and install packages:
+   ```bash
+   git clone https://github.com/Chakrastra/BlogPlatform.git
+   mkvirtualenv myenv --python=python3.11
+   cd BlogPlatform
+   pip install -r requirements.txt
+   ```
+3. Copy environment settings, run migrations and seed data:
+   ```bash
+   cp .env.example .env
+   python manage.py migrate
+   python seed_data.py
+   python manage.py collectstatic --noinput
+   ```
+4. Set up the Web tab:
+   - Source code & Working directory: `/home/YOUR_USERNAME/BlogPlatform`
+   - Virtualenv: `/home/YOUR_USERNAME/.virtualenvs/myenv`
+   - Static files mapping:
+     - URL `/static/` to Directory `/home/YOUR_USERNAME/BlogPlatform/staticfiles`
+     - URL `/media/` to Directory `/home/YOUR_USERNAME/BlogPlatform/media`
+5. Update your WSGI configuration file linked on the Web tab to mount Django:
+   ```python
+   import os
+   import sys
+   path = '/home/YOUR_USERNAME/BlogPlatform'
+   if path not in sys.path:
+       sys.path.append(path)
+   os.environ['DJANGO_SETTINGS_MODULE'] = 'blogplatform.settings'
+   from django.core.wsgi import get_wsgi_application
+   application = get_wsgi_application()
+   ```
 
-```
-SECRET_KEY=your-long-random-secret-key
-DEBUG=False
-ALLOWED_HOSTS=your-app.up.railway.app
-SECURE_SSL_REDIRECT=True
-```
-
-Railway auto-runs migrations and starts Gunicorn on every deploy. 🎉
+### 🥈 Option 2: Railway
+This project is configured with a `railway.toml` and `Procfile` for one-click deploys:
+1. Connect this GitHub repo to [railway.app](https://railway.app)
+2. Provision a **PostgreSQL** database service
+3. Set the required variables in your project config:
+   - `SECRET_KEY`, `DEBUG=False`, `ALLOWED_HOSTS`, and `SECURE_SSL_REDIRECT=True`
 
 ---
 
